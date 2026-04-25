@@ -1,0 +1,649 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🌌 COSMIC NEXUS | Solar System + Living Entities Evolution</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: 'Segoe UI', 'Orbitron', monospace;
+            background: #000;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            z-index: 1;
+        }
+
+        /* Epic HUD */
+        .hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 18px 24px;
+            border: 1px solid rgba(0, 255, 255, 0.6);
+            font-family: 'Orbitron', monospace;
+            color: #0ff;
+            pointer-events: none;
+            min-width: 280px;
+        }
+
+        .hud .title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px cyan;
+        }
+
+        .hud .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 11px;
+            border-bottom: 1px solid rgba(0,255,255,0.2);
+            padding: 4px 0;
+        }
+
+        /* Control Panel */
+        .god-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(10, 10, 30, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid #ff44aa;
+            width: 360px;
+            pointer-events: auto;
+            box-shadow: 0 0 40px rgba(255, 68, 170, 0.3);
+        }
+
+        .god-panel h3 {
+            color: #ff88cc;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .god-panel input {
+            flex: 1;
+            background: #111122;
+            border: 1px solid #ff44aa;
+            padding: 10px;
+            border-radius: 12px;
+            color: white;
+            font-family: monospace;
+            outline: none;
+        }
+
+        .god-panel button {
+            background: linear-gradient(135deg, #ff44aa, #aa22ff);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .god-panel button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px #ff44aa;
+        }
+
+        .planet-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .planet-btn {
+            background: #1a1a3a;
+            font-size: 10px;
+            padding: 6px;
+        }
+
+        .event-log {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 12px;
+            width: 340px;
+            height: 220px;
+            overflow-y: auto;
+            font-size: 10px;
+            font-family: monospace;
+            color: #88ffaa;
+            border-left: 3px solid #ff44aa;
+            pointer-events: none;
+        }
+
+        .event-log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px);}
+            to { opacity: 1; transform: translateX(0);}
+        }
+
+        .camera-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 11px;
+            color: #ffaa44;
+            font-family: monospace;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cosmicCanvas"></canvas>
+    
+    <div class="hud">
+        <div class="title">🌌 COSMIC NEXUS · LIVING SOLAR SYSTEM 🌌</div>
+        <div class="stat-row"><span>🪐 ACTIVE ENTITIES:</span><span id="entityCount">0</span></div>
+        <div class="stat-row"><span>⚡ TOTAL EVOLUTIONS:</span><span id="evoCount">0</span></div>
+        <div class="stat-row"><span>👑 SUPREME BEINGS:</span><span id="supremeCount">0</span></div>
+        <div class="stat-row"><span>🌍 CURRENT PLANET:</span><span id="currentPlanet">Earth</span></div>
+    </div>
+
+    <div class="god-panel">
+        <h3>⚡ GOD CONSOLE · PLANETARY EVOLUTION ⚡</h3>
+        <div class="input-group">
+            <input type="text" id="entityName" placeholder="Entity name (e.g., 'Solaris', 'Nebulon')">
+            <button id="spawnBtn">✨ SPAWN ENTITY</button>
+        </div>
+        <div class="planet-selector">
+            <button class="planet-btn" data-planet="mercury">☿ MERCURY</button>
+            <button class="planet-btn" data-planet="venus">♀ VENUS</button>
+            <button class="planet-btn" data-planet="earth">🌍 EARTH</button>
+            <button class="planet-btn" data-planet="mars">♂ MARS</button>
+            <button class="planet-btn" data-planet="jupiter">♃ JUPITER</button>
+            <button class="planet-btn" data-planet="saturn">♄ SATURN</button>
+            <button class="planet-btn" data-planet="uranus">⛢ URANUS</button>
+            <button class="planet-btn" data-planet="neptune">♆ NEPTUNE</button>
+        </div>
+        <div class="input-group">
+            <button id="evolveAllBtn">🧬 EVOLVE ALL</button>
+            <button id="resetBtn">🔄 RESET UNIVERSE</button>
+            <button id="cataclysmBtn">💀 COSMIC FUSION</button>
+        </div>
+    </div>
+
+    <div class="event-log" id="eventLog">
+        <div class="event-log-entry">🌀 SYSTEM BOOT: Living Solar System Active</div>
+        <div class="event-log-entry">✨ Drag entities to merge → Create hybrid legends</div>
+        <div class="event-log-entry">🌍 Entities evolve differently on each planet</div>
+    </div>
+
+    <div class="camera-controls">
+        🖱️ DRAG to rotate | SCROLL to zoom | Click planets to focus
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // --------------------------------------------------------------
+        // LIVING SOLAR SYSTEM + ENTITY EVOLUTION SIMULATOR
+        // Complete 3D solar system with textured planets, orbits, stars
+        // Entities can be spawned on any planet, evolve, fight, merge
+        // --------------------------------------------------------------
+        
+        const canvas = document.getElementById('cosmicCanvas');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x010105);
+        scene.fog = new THREE.FogExp2(0x010105, 0.0008);
+        
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 15, 35);
+        camera.lookAt(0, 0, 0);
+        
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        
+        // Lighting
+        const ambient = new THREE.AmbientLight(0x111122);
+        scene.add(ambient);
+        const sunLight = new THREE.PointLight(0xffaa66, 1.8, 100);
+        sunLight.position.set(0, 0, 0);
+        scene.add(sunLight);
+        const fillLight = new THREE.DirectionalLight(0x88aaff, 0.6);
+        fillLight.position.set(5, 10, 7);
+        scene.add(fillLight);
+        
+        // Starfield
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 4000;
+        const starPos = [];
+        for (let i = 0; i < starCount; i++) {
+            starPos.push((Math.random() - 0.5) * 500);
+            starPos.push((Math.random() - 0.5) * 300);
+            starPos.push((Math.random() - 0.5) * 200 - 80);
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(starPos), 3));
+        const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, transparent: true, opacity: 0.7 }));
+        scene.add(stars);
+        
+        // SUN
+        const sunMat = new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0xff4411, emissiveIntensity: 1.2 });
+        const sun = new THREE.Mesh(new THREE.SphereGeometry(2.8, 64, 64), sunMat);
+        scene.add(sun);
+        
+        // Planet data: name, radius, distance, color, speed
+        const planetsData = [
+            { name: 'mercury', radius: 0.32, distance: 4.5, color: 0xbc9a6c, speed: 0.025 },
+            { name: 'venus', radius: 0.4, distance: 6.2, color: 0xe6b800, speed: 0.018 },
+            { name: 'earth', radius: 0.45, distance: 8.0, color: 0x2e86c1, speed: 0.015 },
+            { name: 'mars', radius: 0.38, distance: 9.8, color: 0xc4562c, speed: 0.012 },
+            { name: 'jupiter', radius: 0.9, distance: 13.5, color: 0xd8a27a, speed: 0.007 },
+            { name: 'saturn', radius: 0.8, distance: 16.0, color: 0xf0d9b0, speed: 0.0055, hasRing: true },
+            { name: 'uranus', radius: 0.65, distance: 19.0, color: 0xb0e0e6, speed: 0.004 },
+            { name: 'neptune', radius: 0.64, distance: 22.5, color: 0x4169e1, speed: 0.003 }
+        ];
+        
+        let planets = [];
+        let orbits = [];
+        let angles = planetsData.map(() => Math.random() * Math.PI * 2);
+        
+        // Create planets
+        planetsData.forEach((data, idx) => {
+            const geometry = new THREE.SphereGeometry(data.radius, 64, 64);
+            const material = new THREE.MeshStandardMaterial({ color: data.color, metalness: 0.3, roughness: 0.6 });
+            const planet = new THREE.Mesh(geometry, material);
+            planet.userData = { name: data.name, index: idx, entities: [] };
+            scene.add(planet);
+            
+            if (data.hasRing) {
+                const ringGeo = new THREE.TorusGeometry(data.radius + 0.25, 0.12, 32, 100);
+                const ringMat = new THREE.MeshStandardMaterial({ color: 0xcbb88e, emissive: 0x442200 });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = Math.PI / 2.2;
+                planet.add(ring);
+            }
+            
+            // Orbit line
+            const orbitPoints = [];
+            const orbitRadius = data.distance;
+            for (let i = 0; i <= 128; i++) {
+                const angle = (i / 128) * Math.PI * 2;
+                orbitPoints.push(new THREE.Vector3(Math.cos(angle) * orbitRadius, 0, Math.sin(angle) * orbitRadius));
+            }
+            const orbitGeo = new THREE.BufferGeometry().setFromPoints(orbitPoints);
+            const orbitMat = new THREE.LineBasicMaterial({ color: 0x4488aa, transparent: true, opacity: 0.3 });
+            const orbitLine = new THREE.LineLoop(orbitGeo, orbitMat);
+            scene.add(orbitLine);
+            orbits.push(orbitLine);
+            
+            planets.push(planet);
+        });
+        
+        // Entity class that lives on planets
+        class Entity {
+            constructor(id, name, power, intelligence, parentPlanetIdx, colorHex = null) {
+                this.id = id;
+                this.name = name;
+                this.power = power;
+                this.intelligence = intelligence;
+                this.dominance = 0;
+                this.planetIdx = parentPlanetIdx;
+                this.mesh = this.createMesh(colorHex);
+                this.updatePosition();
+                scene.add(this.mesh);
+            }
+            
+            createMesh(colorHex) {
+                const geometry = new THREE.SphereGeometry(0.28, 24, 24);
+                const color = colorHex || new THREE.Color().setHSL(Math.random(), 0.9, 0.6);
+                const material = new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 0.3 });
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                // Label
+                const canvas = document.createElement('canvas');
+                canvas.width = 256;
+                canvas.height = 128;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000000aa';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = 'Bold 20px "Orbitron", monospace';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.name.slice(0, 12), canvas.width/2, canvas.height/2);
+                ctx.font = '12px monospace';
+                ctx.fillStyle = '#ffaa88';
+                ctx.fillText(`⚡${Math.floor(this.power)}`, canvas.width/2, canvas.height - 25);
+                const texture = new THREE.CanvasTexture(canvas);
+                const spriteMat = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+                const sprite = new THREE.Sprite(spriteMat);
+                sprite.scale.set(1.2, 0.7, 1);
+                sprite.position.set(0, 0.45, 0);
+                mesh.add(sprite);
+                
+                return mesh;
+            }
+            
+            updatePosition() {
+                const planet = planets[this.planetIdx];
+                if (planet) {
+                    // Position entity slightly above planet surface
+                    const planetRadius = planetsData[this.planetIdx].radius;
+                    const angle = (this.id * 37) % (Math.PI * 2);
+                    const offsetX = Math.cos(angle) * (planetRadius + 0.35);
+                    const offsetZ = Math.sin(angle) * (planetRadius + 0.35);
+                    this.mesh.position.x = planet.position.x + offsetX;
+                    this.mesh.position.z = planet.position.z + offsetZ;
+                    this.mesh.position.y = planet.position.y + Math.sin(angle * 2) * 0.2 + 0.2;
+                }
+            }
+            
+            updatePositionFollowPlanet() {
+                this.updatePosition();
+            }
+        }
+        
+        let entities = [];
+        let nextId = 1;
+        let totalEvolutions = 0;
+        let selectedEntity = null;
+        let isDragging = false;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let dragOffset = new THREE.Vector3();
+        let currentPlanetFocus = 2; // Earth
+        
+        // Add log
+        function addLog(msg) {
+            const logDiv = document.getElementById('eventLog');
+            const entry = document.createElement('div');
+            entry.className = 'event-log-entry';
+            entry.innerHTML = `🪐 ${new Date().toLocaleTimeString()} | ${msg}`;
+            logDiv.appendChild(entry);
+            entry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (logDiv.children.length > 40) logDiv.removeChild(logDiv.children[0]);
+        }
+        
+        // Spawn entity on specific planet
+        function spawnEntityOnPlanet(planetIdx, customName = null) {
+            const names = ['Cosmic Wisp', 'Nebula Sprite', 'Voidling', 'Stellar Pup', 'Aether Drifter', 'Quantum Spark', 'Solar Flare', 'Lunar Shade'];
+            const name = customName || names[Math.floor(Math.random() * names.length)] + (Math.floor(Math.random() * 100));
+            const power = 30 + Math.random() * 70;
+            const intelligence = 20 + Math.random() * 60;
+            const entity = new Entity(nextId++, name, power, intelligence, planetIdx);
+            entities.push(entity);
+            const planetName = planetsData[planetIdx].name.toUpperCase();
+            addLog(`✨ ${name} spawned on ${planetName} with ${Math.floor(power)} power!`);
+            updateStats();
+            return entity;
+        }
+        
+        // Fuse two entities
+        function fuseEntities(e1, e2) {
+            if (!e1 || !e2) return;
+            const newPower = (e1.power + e2.power) * 0.85 + Math.random() * 40;
+            const newIntel = (e1.intelligence + e2.intelligence) / 2 + 15;
+            const hybridName = e1.name.slice(0, 5) + e2.name.slice(-5);
+            const finalName = hybridName.charAt(0).toUpperCase() + hybridName.slice(1) + (newPower > 120 ? "-PRIME" : "");
+            
+            // Planet for new entity (average or random)
+            const planetIdx = (e1.planetIdx + e2.planetIdx) / 2 > 3 ? Math.floor(Math.random() * 8) : e1.planetIdx;
+            
+            scene.remove(e1.mesh);
+            scene.remove(e2.mesh);
+            entities = entities.filter(e => e.id !== e1.id && e.id !== e2.id);
+            
+            const newEntity = new Entity(nextId++, finalName, Math.min(220, newPower), newIntel, planetIdx);
+            entities.push(newEntity);
+            totalEvolutions++;
+            addLog(`💥 FUSION! ${e1.name} + ${e2.name} = ${finalName} (Power: ${Math.floor(newPower)}) on ${planetsData[planetIdx].name}`);
+            updateStats();
+            return newEntity;
+        }
+        
+        // Evolve all entities
+        function evolveAll() {
+            entities.forEach(e => {
+                const planetBonus = (e.planetIdx === 2 ? 1.2 : 1.0); // Earth bonus
+                e.power += 3 * planetBonus + (Math.random() * 8);
+                e.intelligence += 1.5;
+                if (Math.random() < 0.1) {
+                    addLog(`🧬 ${e.name} evolved! Power +${Math.floor(5 * planetBonus)}`);
+                }
+                // Update visual
+                const scale = 0.8 + (e.power / 150);
+                e.mesh.scale.set(scale, scale, scale);
+            });
+            totalEvolutions += entities.length;
+            updateStats();
+        }
+        
+        // Cataclysm: merge all entities on same planet
+        function cataclysmMerge() {
+            if (entities.length < 2) return;
+            let master = entities[0];
+            for (let i = 1; i < entities.length; i++) {
+                master = fuseEntities(master, entities[i]);
+                if (!master) break;
+            }
+            addLog(`💀 COSMIC FUSION: Entities merged into ${master ? master.name : 'a singularity'}!`);
+        }
+        
+        // Reset universe
+        function resetUniverse() {
+            entities.forEach(e => scene.remove(e.mesh));
+            entities = [];
+            nextId = 1;
+            totalEvolutions = 0;
+            addLog(`🔄 UNIVERSE RESET. Spawning initial entities...`);
+            for (let i = 0; i < 6; i++) {
+                setTimeout(() => spawnEntityOnPlanet(Math.floor(Math.random() * 8), null), i * 200);
+            }
+            updateStats();
+        }
+        
+        function updateStats() {
+            document.getElementById('entityCount').innerText = entities.length;
+            document.getElementById('evoCount').innerText = totalEvolutions;
+            document.getElementById('supremeCount').innerText = entities.filter(e => e.power > 140).length;
+        }
+        
+        // Planet focusing
+        function focusOnPlanet(planetIdx) {
+            currentPlanetFocus = planetIdx;
+            const planet = planets[planetIdx];
+            const targetPos = planet.position.clone();
+            // Smooth camera transition in animate loop
+            camera.userData = { target: targetPos, lerp: 0.05 };
+            document.getElementById('currentPlanet').innerText = planetsData[planetIdx].name.toUpperCase();
+            addLog(`🔭 Camera focused on ${planetsData[planetIdx].name.toUpperCase()}`);
+        }
+        
+        // Drag logic for entity fusion
+        function onMouseDown(event) {
+            mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+            mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(entities.map(e => e.mesh));
+            if (intersects.length > 0) {
+                selectedEntity = intersects[0].object;
+                isDragging = true;
+                const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), selectedEntity.position.z);
+                const point = raycaster.ray.intersectPlane(planeZ, new THREE.Vector3());
+                if (point) dragOffset.copy(selectedEntity.position).sub(point);
+                document.body.style.cursor = 'grabbing';
+            } else {
+                // Click on planet to focus
+                const planetIntersects = raycaster.intersectObjects(planets);
+                if (planetIntersects.length > 0) {
+                    const planetObj = planetIntersects[0].object;
+                    const idx = planets.findIndex(p => p === planetObj);
+                    if (idx !== -1) focusOnPlanet(idx);
+                }
+            }
+        }
+        
+        function onMouseMove(event) {
+            if (!isDragging || !selectedEntity) return;
+            mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+            mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), selectedEntity.position.z);
+            const point = raycaster.ray.intersectPlane(planeZ, new THREE.Vector3());
+            if (point) {
+                let newPos = point.clone().add(dragOffset);
+                selectedEntity.position.copy(newPos);
+            }
+        }
+        
+        function onMouseUp() {
+            if (isDragging && selectedEntity) {
+                const draggedEnt = entities.find(e => e.mesh === selectedEntity);
+                if (draggedEnt) {
+                    // Check collision with other entities
+                    for (let other of entities) {
+                        if (other !== draggedEnt && other.mesh) {
+                            const dist = selectedEntity.position.distanceTo(other.mesh.position);
+                            if (dist < 0.9) {
+                                fuseEntities(draggedEnt, other);
+                                break;
+                            }
+                        }
+                    }
+                    // Snap back to planet position
+                    draggedEnt.updatePosition();
+                }
+            }
+            isDragging = false;
+            selectedEntity = null;
+            document.body.style.cursor = 'default';
+        }
+        
+        // Animation loop
+        let time = 0;
+        let cameraTarget = new THREE.Vector3(0, 0, 0);
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+            
+            // Update planet positions
+            planets.forEach((planet, idx) => {
+                angles[idx] += planetsData[idx].speed * 0.6;
+                const dist = planetsData[idx].distance;
+                planet.position.x = Math.cos(angles[idx]) * dist;
+                planet.position.z = Math.sin(angles[idx]) * dist;
+                planet.position.y = 0;
+            });
+            
+            // Update entity positions relative to their planets
+            entities.forEach(e => {
+                e.updatePositionFollowPlanet();
+                // Natural evolution
+                e.power += 0.08;
+                e.intelligence += 0.03;
+                const scale = 0.7 + (e.power / 180);
+                e.mesh.scale.lerp(new THREE.Vector3(scale, scale, scale), 0.1);
+            });
+            
+            // Camera smoothing
+            if (camera.userData && camera.userData.target) {
+                cameraTarget.lerp(camera.userData.target, 0.05);
+                const targetPos = cameraTarget;
+                const offset = new THREE.Vector3(6, 4, 8);
+                const desiredPos = targetPos.clone().add(offset);
+                camera.position.lerp(desiredPos, 0.05);
+                camera.lookAt(targetPos);
+            } else {
+                // Auto orbit
+                const angle = time * 0.1;
+                camera.position.x = Math.sin(angle) * 18;
+                camera.position.z = Math.cos(angle * 0.7) * 22;
+                camera.position.y = 9 + Math.sin(angle * 0.5) * 2;
+                camera.lookAt(0, 0, 0);
+            }
+            
+            stars.rotation.y += 0.0002;
+            sun.rotation.y += 0.002;
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Event listeners
+        window.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+        
+        document.getElementById('spawnBtn').addEventListener('click', () => {
+            const name = document.getElementById('entityName').value;
+            spawnEntityOnPlanet(currentPlanetFocus, name || null);
+            document.getElementById('entityName').value = '';
+        });
+        
+        document.querySelectorAll('.planet-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const planetName = btn.dataset.planet;
+                const idx = planetsData.findIndex(p => p.name === planetName);
+                if (idx !== -1) focusOnPlanet(idx);
+            });
+        });
+        
+        document.getElementById('evolveAllBtn').addEventListener('click', evolveAll);
+        document.getElementById('resetBtn').addEventListener('click', resetUniverse);
+        document.getElementById('cataclysmBtn').addEventListener('click', cataclysmMerge);
+        
+        // Initialize
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => spawnEntityOnPlanet(Math.floor(Math.random() * 8), null), i * 300);
+        }
+        
+        animate();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        addLog(`🚀 LIVING SOLAR SYSTEM ACTIVE! Drag entities on planets to merge and evolve!`);
+    </script>
+</body>
+</html>
+```
